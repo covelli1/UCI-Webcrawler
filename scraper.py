@@ -7,6 +7,7 @@ import urllib.request
 import requests
 import urllib.robotparser
 import nltk
+from nltk.probability import ConditionalFreqDist
 
 # nltk.download()
 
@@ -39,10 +40,18 @@ def extract_next_links(url, resp):
                 temp = urllib.request.urlopen(new_link, timeout = 10)
                 if(temp.getcode() == 200 and (all_urls.get(new_link) == None)):
                     new_soup = BeautifulSoup(temp, "html.parser")
+                    text = new_soup.get_text().lower()
 
-                    tokens = nltk.tokenize.word_tokenize(new_soup.get_text())
+                    cfdist = ConditionalFreqDist()
 
-                    print(tokens)
+                    tokens = nltk.tokenize.word_tokenize(text)
+
+                    for word in tokens:
+                        condition = len(word)
+                        cfdist[condition][word] += 1
+
+                    for key in cfdist:
+                        print(dict(cfdist[key]))
 
                     links.append(new_link)
                     all_urls[new_link] = 1
