@@ -22,43 +22,50 @@ def extract_next_links(url, resp):
     links = list()
 
     try:
+
+        rp = urllib.robotparser.RobotFileParser()
         parsed = urlparse(url)
         robot = parsed.scheme + "://" + parsed.netloc + "/robot.txt"
-        print(robot)
-        temp = urllib.request.urlopen(robot)
-        print(temp.info())
+        rp.set_url(robot)
+        rp.read()
+        # print(rp.crawl_delay("*"))
+        print(rp.can_fetch('*', url))
+
+        if(rp.can_fetch('*', url)):
+
+            html = urllib.request.urlopen(url, timeout = 10)
+            soup = BeautifulSoup(html, "html.parser")
+            for link in soup.findAll('a'):
+                new_link = link.get('href')
+                if(is_valid(new_link)):
+                    try:
+                        temp = urllib.request.urlopen(new_link, timeout = 10)
+                        if(temp.getcode() == 200 and (all_urls.get(new_link) == None)):
+                            new_soup = BeautifulSoup(temp, "html.parser")
+                            text = new_soup.get_text().lower()
+
+                            cfdist = ConditionalFreqDist()
+
+                            tokens = nltk.tokenize.word_tokenize(text)
+
+                            for word in tokens:
+                                # if not(re.fullmatch('[' + string.punctuation + ']+', word)):
+                                #     print('entered')
+                                if(word.isalpha()):
+                                    condition = len(word)
+                                    cfdist[condition][word] += 1
+
+                            for key in cfdist:
+                                print(dict(cfdist[key]))
+
+                            links.append(new_link)
+                            all_urls[new_link] = 1
+                    except Exception as ex:
+                        print(type(ex))
+                        # print("error 404")
+                    # links.append(new_link)
     except:
-        print("no robot")
-
-
-    html = urllib.request.urlopen(url, timeout = 10)
-    soup = BeautifulSoup(html, "html.parser")
-    for link in soup.findAll('a'):
-        new_link = link.get('href')
-        if(is_valid(new_link)):
-            try:
-                temp = urllib.request.urlopen(new_link, timeout = 10)
-                if(temp.getcode() == 200 and (all_urls.get(new_link) == None)):
-                    new_soup = BeautifulSoup(temp, "html.parser")
-                    text = new_soup.get_text().lower()
-
-                    cfdist = ConditionalFreqDist()
-
-                    tokens = nltk.tokenize.word_tokenize(text)
-
-                    for word in tokens:
-                        condition = len(word)
-                        cfdist[condition][word] += 1
-
-                    for key in cfdist:
-                        print(dict(cfdist[key]))
-
-                    links.append(new_link)
-                    all_urls[new_link] = 1
-            except Exception as ex:
-                print(type(ex))
-                # print("error 404")
-            # links.append(new_link)
+        print("robot error")
 
 
     # links = list()
