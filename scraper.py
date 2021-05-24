@@ -13,6 +13,7 @@ from nltk.probability import ConditionalFreqDist
 
 all_urls = dict()
 visited_robots = dict()
+docs = {}
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -59,6 +60,29 @@ def extract_next_links(url, resp):
                                     if(word.isalpha()):
                                         condition = len(word)
                                         cfdist[condition][word] += 1
+                                
+                                for keys in cfdist:
+                                    if temp in dict:
+                                        docs[temp][keys] = cfdist[keys]
+                                    else:
+                                        docs[temp] = {}
+
+                                total = 0
+                                wordSim = 0
+                                docs = 0
+                                for doc in docs:
+                                    for word in cfdist:
+                                        for num in word:
+                                            if word[num] == doc[word]:
+                                                wordSim += 1
+                                        docs += 1
+                                    
+                                        wordSim / docs
+                                        
+                                    total += 1
+                                
+                                total = (wordSim + docs / total)
+                                
 
                                 # for key in cfdist:
                                 #     print(dict(cfdist[key]))
@@ -66,7 +90,6 @@ def extract_next_links(url, resp):
                                 # print(new_link)
                                 # print(len(cfdist.keys()))
                                 # if(len(cfdist.keys()) > 20):
-                                print(new_link)
                                 links.append(new_link)
                                 all_urls[new_link] = 1
 
